@@ -18,6 +18,8 @@ add_executable(${PROJECT_NAME}
         lib/SD/SD.c
         lib/ssd1306/ssd1306.c
         lib/push_button/button.c
+        lib/rgb/rgb.c
+        lib/buzzer/buzzer.c
         )
 
 # pico_generate_pio_header(${PROJECT_NAME} ${CMAKE_CURRENT_LIST_DIR}/lib/ws2812/ws2812.pio)
@@ -27,6 +29,7 @@ target_link_libraries(${PROJECT_NAME}
         FatFs_SPI
         hardware_clocks       
         hardware_i2c
+        hardware_pwm
         )
 
 target_include_directories(${PROJECT_NAME}  PRIVATE   ${CMAKE_CURRENT_LIST_DIR} 
@@ -34,6 +37,8 @@ target_include_directories(${PROJECT_NAME}  PRIVATE   ${CMAKE_CURRENT_LIST_DIR}
         lib/SD
         lib/ssd1306
         lib/push_button
+        lib/rgb
+        lib/buzzer
         )
 
 pico_enable_stdio_usb(${PROJECT_NAME} 1)
