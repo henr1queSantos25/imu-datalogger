@@ -1,4 +1,10 @@
 #include "SD.h"
+#include "ssd1306.h"
+
+
+extern volatile bool montando_cartao;
+extern volatile bool desmontando_cartao;
+extern ssd1306_t ssd;
 
 cmd_def_t cmds[] = {
     {"setrtc", run_setrtc, "setrtc <DD> <MM> <YY> <hh> <mm> <ss>: Set Real Time Clock"},
@@ -104,52 +110,76 @@ void run_format() {
 }
 
 // Mount the SD card
-void run_mount()
-{
+void run_mount() {
+
+    ssd1306_draw_string(&ssd, "...", 24, 30);
+    ssd1306_send_data(&ssd); 
     const char *arg1 = strtok(NULL, " ");
     if (!arg1)
         arg1 = sd_get_by_num(0)->pcName;
     FATFS *p_fs = sd_get_fs_by_name(arg1);
-    if (!p_fs)
-    {
+    if (!p_fs) {
+        ssd1306_draw_string(&ssd, "Erro ao montar", 24, 30);
+        ssd1306_draw_string(&ssd, "Cartao", 24, 38);
+        ssd1306_send_data(&ssd);
         printf("Unknown logical drive number: \"%s\"\n", arg1);
+        montando_cartao = false; // Reset the mounting flag
         return;
     }
     FRESULT fr = f_mount(p_fs, arg1, 1);
-    if (FR_OK != fr)
-    {
+    if (FR_OK != fr) {
+        ssd1306_draw_string(&ssd, "Erro ao montar", 24, 30);
+        ssd1306_draw_string(&ssd, "Cartao", 24, 38);
+        ssd1306_send_data(&ssd);
         printf("f_mount error: %s (%d)\n", FRESULT_str(fr), fr);
+        montando_cartao = false; // Reset the mounting flag
         return;
     }
     sd_card_t *pSD = sd_get_by_name(arg1);
     myASSERT(pSD);
     pSD->mounted = true;
     printf("Processo de montagem do SD ( %s ) concluído\n", pSD->pcName);
+    ssd1306_draw_string(&ssd, "Cartao", 24, 30);
+    ssd1306_draw_string(&ssd, "Montado!", 24, 38);
+    ssd1306_send_data(&ssd);
+    montando_cartao = false; // Reset the mounting flag
 }
 
 // Unmount the SD card
 void run_unmount()
 {
+    ssd1306_draw_string(&ssd, "...", 24, 30);
+    ssd1306_send_data(&ssd);
     const char *arg1 = strtok(NULL, " ");
     if (!arg1)
         arg1 = sd_get_by_num(0)->pcName;
     FATFS *p_fs = sd_get_fs_by_name(arg1);
-    if (!p_fs)
-    {
+    if (!p_fs) {
+        ssd1306_draw_string(&ssd, "Erro ao desmontar", 24, 30);
+        ssd1306_draw_string(&ssd, "Cartao", 24, 38);
+        ssd1306_send_data(&ssd);
         printf("Unknown logical drive number: \"%s\"\n", arg1);
+        desmontando_cartao = false; // Reset the unmounting flag
         return;
     }
     FRESULT fr = f_unmount(arg1);
-    if (FR_OK != fr)
-    {
+    if (FR_OK != fr) {
         printf("f_unmount error: %s (%d)\n", FRESULT_str(fr), fr);
+        ssd1306_draw_string(&ssd, "Erro ao desmontar", 24, 30);
+        ssd1306_draw_string(&ssd, "Cartao", 24, 38);
+        ssd1306_send_data(&ssd);
+        desmontando_cartao = false; // Reset the unmounting flag
         return;
     }
     sd_card_t *pSD = sd_get_by_name(arg1);
     myASSERT(pSD);
     pSD->mounted = false;
     pSD->m_Status |= STA_NOINIT; // in case medium is removed
+    ssd1306_draw_string(&ssd, "Cartao", 24, 30);
+    ssd1306_draw_string(&ssd, "Desmontado!", 24, 38);
+    ssd1306_send_data(&ssd);
     printf("SD ( %s ) desmontado\n", pSD->pcName);
+    desmontando_cartao = false; // Reset the unmounting flag
 }
 
 // Get free space on the SD card
