@@ -5,6 +5,7 @@
 extern volatile bool montando_cartao;
 extern volatile bool desmontando_cartao;
 extern ssd1306_t ssd;
+extern bool cor; 
 
 cmd_def_t cmds[] = {
     {"setrtc", run_setrtc, "setrtc <DD> <MM> <YY> <hh> <mm> <ss>: Set Real Time Clock"},
@@ -14,6 +15,16 @@ cmd_def_t cmds[] = {
     {"getfree", run_getfree, "getfree [<drive#:>]: Espaço livre"},
     {"ls", run_ls, "ls: Lista arquivos"},
     {"cat", run_cat, "cat <filename>: Mostra conteúdo do arquivo"}};
+
+
+
+bool sd_card_mounted() {
+    sd_card_t *pSD = sd_get_by_num(0);
+    if (!pSD) return false;
+    
+    return pSD->mounted;
+}
+
 
 
 sd_card_t *sd_get_by_name(const char *const name) {
@@ -112,6 +123,8 @@ void run_format() {
 // Mount the SD card
 void run_mount() {
 
+    ssd1306_fill(&ssd, false); // Limpa o display
+    ssd1306_rect(&ssd, 3, 3, 122, 60, cor, !cor); // Desenha um retângulo
     ssd1306_draw_string(&ssd, "...", 24, 30);
     ssd1306_send_data(&ssd); 
     const char *arg1 = strtok(NULL, " ");
@@ -119,8 +132,10 @@ void run_mount() {
         arg1 = sd_get_by_num(0)->pcName;
     FATFS *p_fs = sd_get_fs_by_name(arg1);
     if (!p_fs) {
-        ssd1306_draw_string(&ssd, "Erro ao montar", 24, 30);
-        ssd1306_draw_string(&ssd, "Cartao", 24, 38);
+        ssd1306_fill(&ssd, false); // Limpa o display
+        ssd1306_rect(&ssd, 3, 3, 122, 60, cor, !cor); // Desenha um retângulo
+        ssd1306_draw_string(&ssd, "Erro ao montar", 8, 22);
+        ssd1306_draw_string(&ssd, "Cartao", 32, 38);
         ssd1306_send_data(&ssd);
         printf("Unknown logical drive number: \"%s\"\n", arg1);
         montando_cartao = false; // Reset the mounting flag
@@ -128,8 +143,10 @@ void run_mount() {
     }
     FRESULT fr = f_mount(p_fs, arg1, 1);
     if (FR_OK != fr) {
-        ssd1306_draw_string(&ssd, "Erro ao montar", 24, 30);
-        ssd1306_draw_string(&ssd, "Cartao", 24, 38);
+        ssd1306_fill(&ssd, false); // Limpa o display
+        ssd1306_rect(&ssd, 3, 3, 122, 60, cor, !cor); // Desenha um retângulo
+        ssd1306_draw_string(&ssd, "Erro ao montar", 8, 22);
+        ssd1306_draw_string(&ssd, "Cartao", 32, 38);
         ssd1306_send_data(&ssd);
         printf("f_mount error: %s (%d)\n", FRESULT_str(fr), fr);
         montando_cartao = false; // Reset the mounting flag
@@ -138,16 +155,19 @@ void run_mount() {
     sd_card_t *pSD = sd_get_by_name(arg1);
     myASSERT(pSD);
     pSD->mounted = true;
+    ssd1306_fill(&ssd, false); // Limpa o display
+    ssd1306_rect(&ssd, 3, 3, 122, 60, cor, !cor); // Desenha um retângulo
     printf("Processo de montagem do SD ( %s ) concluído\n", pSD->pcName);
-    ssd1306_draw_string(&ssd, "Cartao", 24, 30);
-    ssd1306_draw_string(&ssd, "Montado!", 24, 38);
+    ssd1306_draw_string(&ssd, "CARTAO", 36, 25);
+    ssd1306_draw_string(&ssd, "MONTADO!", 32, 38);
     ssd1306_send_data(&ssd);
     montando_cartao = false; // Reset the mounting flag
 }
 
 // Unmount the SD card
-void run_unmount()
-{
+void run_unmount() {
+
+    ssd1306_fill(&ssd, false); // Limpa o display
     ssd1306_draw_string(&ssd, "...", 24, 30);
     ssd1306_send_data(&ssd);
     const char *arg1 = strtok(NULL, " ");
@@ -155,6 +175,8 @@ void run_unmount()
         arg1 = sd_get_by_num(0)->pcName;
     FATFS *p_fs = sd_get_fs_by_name(arg1);
     if (!p_fs) {
+        ssd1306_fill(&ssd, false); // Limpa o display
+        ssd1306_rect(&ssd, 3, 3, 122, 60, cor, !cor); // Desenha um retângulo
         ssd1306_draw_string(&ssd, "Erro ao desmontar", 24, 30);
         ssd1306_draw_string(&ssd, "Cartao", 24, 38);
         ssd1306_send_data(&ssd);
@@ -165,6 +187,8 @@ void run_unmount()
     FRESULT fr = f_unmount(arg1);
     if (FR_OK != fr) {
         printf("f_unmount error: %s (%d)\n", FRESULT_str(fr), fr);
+        ssd1306_fill(&ssd, false); // Limpa o display
+        ssd1306_rect(&ssd, 3, 3, 122, 60, cor, !cor); // Desenha um retângulo
         ssd1306_draw_string(&ssd, "Erro ao desmontar", 24, 30);
         ssd1306_draw_string(&ssd, "Cartao", 24, 38);
         ssd1306_send_data(&ssd);
@@ -175,8 +199,10 @@ void run_unmount()
     myASSERT(pSD);
     pSD->mounted = false;
     pSD->m_Status |= STA_NOINIT; // in case medium is removed
-    ssd1306_draw_string(&ssd, "Cartao", 24, 30);
-    ssd1306_draw_string(&ssd, "Desmontado!", 24, 38);
+    ssd1306_fill(&ssd, false); // Limpa o display
+    ssd1306_rect(&ssd, 3, 3, 122, 60, cor, !cor); // Desenha um retângulo
+    ssd1306_draw_string(&ssd, "CARTAO", 44, 25);
+    ssd1306_draw_string(&ssd, "DESMONTADO!", 24, 41);
     ssd1306_send_data(&ssd);
     printf("SD ( %s ) desmontado\n", pSD->pcName);
     desmontando_cartao = false; // Reset the unmounting flag

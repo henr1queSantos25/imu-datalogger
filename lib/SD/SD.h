@@ -32,6 +32,7 @@ typedef struct
 
 sd_card_t *sd_get_by_name(const char *const name);
 FATFS *sd_get_fs_by_name(const char *name);
+bool sd_card_mounted();
 void run_setrtc();
 void run_format();
 void run_mount();
