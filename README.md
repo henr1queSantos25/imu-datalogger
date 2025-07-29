@@ -6,7 +6,7 @@ O **IMU DATALOGGER** é um sistema embarcado completo e portátil desenvolvido p
 
 ## Vídeo de Demonstração
 
-[Assista à demonstração do IMU DATALOGGER](#)
+[Assista à demonstração do IMU DATALOGGER](https://drive.google.com/file/d/14b9X55asbAdDGM4BzNkNFmdBIxF87rub/view?usp=sharing)
 
 ---
 
